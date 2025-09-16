@@ -19,7 +19,7 @@ def loadData(file_path: str = "data.csv") -> Optional[pd.DataFrame]:
 
 
 def appendHeader(df: DataFrame) -> DataFrame:
-    col_names = ["diagnosis" if i == 1 else f"f{i+1}"
+    col_names = ["diagnosis" if i == 1 else f"f{i + (1 if i >= 1 else 0)}"
                  for i in range(df.shape[1])]
     return df.set_axis(col_names, axis=1)
 
