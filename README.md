@@ -9,6 +9,16 @@ multilayer perceptron.
 [uv](https://github.com/astral-sh/uv) is used to install and manage python,
 it is simple to install on school computers and creates the venv just fine.
 
+### Launch Jupyter
+
+[Jupyter notbook](https://jupyter.org/) is a nice mix of docs & code, to launch it:
+
+```zsh
+uv sync # makes the venv and installed packages
+source ./venv/bin/active
+jupyter notebook
+```
+
 ## Notions for the evaluation
 
 Must understand the training phase (learning pase) and the underlying

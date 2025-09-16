@@ -7,7 +7,7 @@ fetch() {
 }
 
 install() {
-    echo "Check uv is installed"
+    echo "TODO: check uv is installed"
 
     uv sync
 

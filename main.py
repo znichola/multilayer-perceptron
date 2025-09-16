@@ -28,11 +28,12 @@ def main():
     args = parser.parse_args()
 
     df = loadData(args.file_path)
+    if df is None:
+        return
     df = appendHeader(df)
 
     print("\nData overview")
     print(df)
-    return
     print("\nData describe")
     print(df.describe(include="all"))
     print("\nData shape")
