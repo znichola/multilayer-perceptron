@@ -54,6 +54,31 @@ The goal is to predic a cancer diagnosis, the M,B colum in the dataset
 Concept seems simple, but implementation not so much, the google doc is good
 place to start.
 
+### PyTorch interface
+
+I will copy the pytorch interface, seems like a reasonable appraoch, and their docs hace nice clickable links in code examples. [build pyTorch model](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html)
+
+The overall layout is something like this:
+
+```python
+class Module:
+    # something
+    self.sequential_stack # the stack of Layers to calculate
+    def forward(vecInput) -> vecOutput: #doing the layer calcs
+        pass
+
+class Layer:
+    # Applies transform to incomming data : y = x * A^T + b
+    def forward(vecInput) -> vecOutput:
+        pass
+
+class ReLU:
+    # Applies the rectified linear unit function element-wise : ReLU(x) = max(0, x)
+    def forward(vecInput) -> vecOutput:
+        pass
+
+```
+
 ## Links
 
 - [google ml crashcourse](https://developers.google.com/machine-learning/crash-course/neural-networks)
