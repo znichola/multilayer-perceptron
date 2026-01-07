@@ -1,10 +1,8 @@
 import argparse
-import sys
-from typing import Optional, Tuple
+from typing import Tuple
 
 import pandas as pd
 from pandas import DataFrame
-import matplotlib.pyplot as plt
 
 import common as cm
 
@@ -20,8 +18,25 @@ def split_data(df: DataFrame, train_frac: float, seed: int) -> Tuple[DataFrame, 
     return train_df, val_df
 
 
+def setupArgs():
+    parser = argparse.ArgumentParser(description="Split data into training and validation sets")
+    parser.add_argument("file_path", 
+                        type=str,
+                        default="data.csv"
+                        )
+    parser.add_argument("--train_frac",
+                        type=float,
+                        default=0.8,
+                        )
+    parser.add_argument("--seed",
+                        type=int,
+                        default=42,
+                        )
+    return parser.parse_args()
+
+
 def main():
-    args = parser.parse_args()
+    args = setupArgs()
 
     seed = cm.load_seed(overwrite_seed=args.seed)
 
@@ -55,12 +70,5 @@ def main():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Split data into training and validation sets")
-    parser.add_argument("file_path", metavar="file_path.csv",
-                        type=str, help="data file to describe")
-    parser.add_argument("-f", "--train_frac", metavar="FRAC",
-                        type=float, default=0.8,
-                        help="Fraction of data to use for training (default 0.8)")
-    parser.add_argument("--seed", metavar="SEED_VAL", type=int, default=42,
-                        help="Value used for seed instead of reading from seed file")
+
     main()
