@@ -83,4 +83,4 @@ class ReLU:
 
 - [google ml crashcourse](https://developers.google.com/machine-learning/crash-course/neural-networks)
 - [classification and manifolds](https://colah.github.io/posts/2014-03-NN-Manifolds-Topology/)
-
+- [categorical cross entropy - kera git](https://github.com/keras-team/keras/blob/465f93f4cc6511da3bb327e49583099eafe0753c/keras/src/backend/tensorflow/nn.py#L1110)
