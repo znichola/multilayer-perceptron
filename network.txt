@@ -1,0 +1,14 @@
+# This is interpreted as a python script with some things pre-imported:
+# 'input_shape' and 'output_shape' are derived from the data, and
+# all mlp classes (Sequential, Dense, Normalize, Sigmoid, SoftMax, ...)
+# It's easy the write an invalid config, so don't be dumb.
+
+model = Sequential([
+    Normalize(),
+    Dense(input_shape, 24, activation=Sigmoid),
+    Dense(24, 24, activation=Sigmoid),
+    Dense(24, 24, activation=Sigmoid),
+    Dense(24, output_shape, activation=SoftMax),
+])
+
+model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=10, batch=1)

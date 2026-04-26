@@ -11,7 +11,8 @@ install() {
 
     uv sync
 
-    echo "ℹ️ To activate the venv run : source .venv/bin/activate"
+    echo "To activate the venv run : source .venv/bin/activate"
+    # on windows: .\.venv\Scripts\activate
 }
 
 jupyter() {

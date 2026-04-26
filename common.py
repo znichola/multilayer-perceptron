@@ -1,6 +1,7 @@
 from typing import Optional
 
 import pandas as pd
+import numpy as np
 import sys
 
 
@@ -68,3 +69,17 @@ def load_data_or_throw(path: str) -> pd.DataFrame:
     if df is None:
         raise ValueError(f"Failed to load data from {path}")
     return add_headers(strip_ID(df))
+
+
+def load_and_prep_data(path: str) -> tuple[np.ndarray, np.ndarray]:
+    df = load_data(path)
+    if df is None:
+        exit(0)
+    df.columns = df.iloc[0]
+    df = df.iloc[1:].reset_index(drop=True)
+    df.iloc[:, 1:] = df.iloc[:, 1:].astype(float)
+    X = df.drop(columns=["diagnosis"]).to_numpy(dtype=float)
+    y = np.zeros((len(df), 2))
+    y[:, 0] = (df["diagnosis"] == "M").astype(float)
+    y[:, 1] = (df["diagnosis"] == "B").astype(float)
+    return X, y
