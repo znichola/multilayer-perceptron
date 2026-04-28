@@ -83,7 +83,7 @@ class Sigmoid:
 
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray:
-        s = Sigmoid.forward(x)
+        s = Sigmoid.forward(x) #TODO store and retrieve
         return s * (1 - s)
 
 
@@ -97,7 +97,8 @@ class SoftMax:
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray:
         return np.ones_like(x)
-
+        s = SoftMax.forward(x)
+        return s * (1 - s)
 
 # Loss functions
 # Forward is scalar loss value
@@ -126,8 +127,9 @@ class BinaryCrossentropy:
 
     @staticmethod
     def backwards(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        return y_pred - y_true
-
+        eps = 1e-8
+        y_pred = np.clip(y_pred, eps, 1 - eps)
+        return (-(y_true / y_pred) + (1 - y_true) / (1 - y_pred)) / y_true.shape[0]
 
 # Model
 
@@ -151,17 +153,38 @@ class Sequential:
         for layer in reversed(self.layers):
             grad = layer.backwards(grad, self.lr)
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+    def fit( self, X: np.ndarray, y: np.ndarray, X_valid: np.ndarray | None = None, y_valid: np.ndarray | None = None,
+    ) -> dict:
+        history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
+
         for epoch in range(self.epochs):
             y_pred = self.forward(X)
             loss   = self.loss_fn.forward(y, y_pred)
             grad   = self.loss_fn.backwards(y, y_pred)
             self.backwards(grad)
 
-            y_pred_labels = np.argmax(y_pred, axis=1)
-            y_true_labels = np.argmax(y, axis=1)
-            acc = (y_pred_labels == y_true_labels).mean()
-            print(f"Epoch {epoch:>4} | Loss: {loss:.4f} | Acc: {acc:.3f}")
+            acc = (np.argmax(y_pred, axis=1) == np.argmax(y, axis=1)).mean()
+            history["loss"].append(loss)
+            history["acc"].append(acc)
+
+            if X_valid is not None and y_valid is not None:
+                val_pred  = self.forward(X_valid)
+                val_loss  = self.loss_fn.forward(y_valid, val_pred)
+                val_acc   = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
+            else:
+                val_loss, val_acc = float("nan"), float("nan")
+
+            history["val_loss"].append(val_loss)
+            history["val_acc"].append(val_acc)
+
+            print(
+                f"Epoch {epoch:>4} | Loss: {loss:.4f} | Acc: {acc:.3f}"
+                + (f" | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.3f}"
+                if X_valid is not None else "")
+            )
+
+        self.history = history
+        return history
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         return self.forward(X)

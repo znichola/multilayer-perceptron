@@ -64,7 +64,7 @@ def main():
     model = validate(namespace, config_path)
 
     print(f"[train] {config_path} - {len(model.layers)}:layers {model.epochs}:epochs {model.batch}:batch_size")
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_train, X_valid, y_valid)
 
     preds = model.predict(X_valid)
     val_acc = (np.argmax(preds, axis=1) == np.argmax(y_valid, axis=1)).mean()
