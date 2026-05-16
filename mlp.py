@@ -122,17 +122,43 @@ def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     t = y_true[np.arange(len(y_true)), np.argmax(y_true, axis=1)]
     return -(t * np.log(p)).mean()
 
+# Early stopping
+
+class EarlyStopping:
+    def __init__(self, patience: int, min_delta: float = 1e-4) -> None:
+        self.patience = patience
+        self.min_delta = min_delta
+        self.best_loss = float("inf")
+        self.wait = 0
+
+    def step(self, val_loss: float, epoch: int) -> bool:
+        if val_loss < self.best_loss - self.min_delta:
+            self.best_loss = val_loss
+            self.wait = 0
+        else:
+            self.wait += 1
+            if self.wait >= self.patience:
+                print(f"[mlp/fit] early stopping at epoch {epoch+1}")
+                return True
+        return False
+
+
 # Model
 
 class Sequential:
     def __init__(self, layers: list[Layer]) -> None:
         self.layers = layers
 
-    def compile(self, loss: LossType, lr: float = 0.01, epochs: int = 100, batch: int = 10) -> None:
+    def compile(self, loss: LossType, lr: float = 0.01, epochs: int = 100, batch: int = 50, patience: int = 0, min_delta: float = 1e-4) -> None:
         self.loss_fn = loss
         self.lr = lr
         self.epochs = epochs
         self.batch = batch
+        self.patience = patience
+        self.min_delta = min_delta
+
+    def __str__(self) -> str:
+        return f"Sequential({len(self.layers)} layers) epochs={self.epochs} batch={self.batch} lr={self.lr} patience={self.patience} min_delta={self.min_delta}"
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         for layer in self.layers:
@@ -143,44 +169,41 @@ class Sequential:
         for layer in reversed(self.layers):
             grad = layer.backwards(grad, self.lr)
 
+    def fit_epoch(self, X: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+        indices = np.random.permutation(len(X))
+        X, y = X[indices], y[indices]
+        total_loss, correct = 0.0, 0
+        for start in range(0, len(X), self.batch):
+            Xb, yb = X[start:start + self.batch], y[start:start + self.batch]
+            y_pred = self.forward(Xb)
+            total_loss += self.loss_fn.forward(yb, y_pred) * len(Xb)
+            correct += (np.argmax(y_pred, axis=1) == np.argmax(yb, axis=1)).sum()
+            self.backwards(self.loss_fn.backwards(yb, y_pred))
+        return total_loss / len(X), correct / len(X)
+
     def fit(self, X: np.ndarray, y: np.ndarray, X_valid: np.ndarray | None = None, y_valid: np.ndarray | None = None) -> dict:
         history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
+        es = EarlyStopping(self.patience, self.min_delta) if self.patience > 0 and X_valid is not None else None
 
         for epoch in range(self.epochs):
-            indices = np.random.permutation(len(X))
-            X_shuffled, y_shuffled = X[indices], y[indices]
-
-            total_loss = 0.0
-            correct = 0
-
-            for start in range(0, len(X), self.batch):
-                Xb = X_shuffled[start:start + self.batch]
-                yb = y_shuffled[start:start + self.batch]
-
-                y_pred_b = self.forward(Xb)
-                loss_b = self.loss_fn.forward(yb, y_pred_b)
-                grad_b = self.loss_fn.backwards(yb, y_pred_b)
-                self.backwards(grad_b)
-
-                total_loss += loss_b * len(Xb)
-                correct += (np.argmax(y_pred_b, axis=1) == np.argmax(yb, axis=1)).sum()
-
-            loss = total_loss / len(X)
-            acc = correct / len(X)
-            history["loss"].append(loss)
-            history["acc"].append(acc)
+            loss, acc = self.fit_epoch(X, y)
 
             if X_valid is not None and y_valid is not None:
                 val_pred = self.forward(X_valid)
                 val_loss = self.loss_fn.forward(y_valid, val_pred)
-                val_acc = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
+                val_acc  = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
             else:
                 val_loss, val_acc = float("nan"), float("nan")
 
+            history["loss"].append(loss)
+            history["acc"].append(acc)
             history["val_loss"].append(val_loss)
             history["val_acc"].append(val_acc)
 
-            print(f"[mlp/sequential/fit] epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
+            print(f"[mlp/fit] epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
+
+            if es and es.step(val_loss, epoch):
+                break
 
         self.history = history
         return history

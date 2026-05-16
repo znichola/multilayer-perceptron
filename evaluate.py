@@ -13,11 +13,9 @@ import common as cm
 def main():
     model_path, data_path = sys.argv[1], sys.argv[2]
 
-    print(f"[evaluate] loading data ...")
     X, y = cm.load_and_prep_data(data_path)
     print(f"[evaluate] {data_path} - {X.shape[0]} entries  shape {X.shape}")
 
-    print(f"[evaluate] loading model ...")
     with open(model_path, "rb") as f:
         model = pickle.load(f)
 

@@ -107,7 +107,7 @@ def main():
     namespace = load_config(config_path, namespace)
     model = validate(namespace, config_path)
 
-    print(f"[train] {config_path} - {len(model.layers)} layers  {model.epochs} epochs  {model.batch} batch_size")
+    print(f"[train] {config_path} - {model}")
     history = model.fit(X_train, y_train, X_valid, y_valid)
 
     preds = model.predict(X_valid)
