@@ -6,7 +6,10 @@
 #
 # The config file is interpreted as plain Python. Everything in mlp.py is
 # pre-imported, plus 'input_shape' and 'output_shape' derived from the data.
+# The resulting model is saved and can be loaded to rerun the inferance
 
+import pathlib
+import pickle
 import sys
 import numpy as np
 import mlp
@@ -49,9 +52,15 @@ def validate(namespace: dict, path: str) -> mlp.Sequential:
     return model
 
 
+def save_model(model: mlp.Sequential, config_path: str) -> pathlib.Path:
+    stem = pathlib.Path(config_path).stem
+    out  = pathlib.Path(config_path).with_suffix(".pkl")
+    with open(out, "wb") as f:
+        pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return out
+
+
 def main():
-    if len(sys.argv) != 4:
-        sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
 
     config_path, train_path, valid_path = sys.argv[1], sys.argv[2], sys.argv[3]
 
@@ -75,6 +84,16 @@ def main():
     print(f"[evaluate] validation accuracy:         {val_acc:.3%}")
     print(f"[evaluate] binary cross-entropy (eval): {bce:.4f}")
 
+    print("")
+    print(f"[train] model saved - {save_model(model, config_path)}")
+
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 4:
+        sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
+    try:
+        main()
+    except SystemExit:
+        raise  # let sys.exit() from validate/load_config pass through
+    except Exception as e:
+        sys.exit(f"[train] unexpected error: {type(e).__name__}: {e}")
