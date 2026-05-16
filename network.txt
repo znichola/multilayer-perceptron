@@ -12,4 +12,4 @@ model = Sequential([
 ])
 
 # CategoricalCrossentropy
-model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=500, batch=0)
+model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=200, batch=50)

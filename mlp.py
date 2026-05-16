@@ -133,7 +133,6 @@ class Sequential:
         self.lr = lr
         self.epochs = epochs
         self.batch = batch
-        # TODO implement batch
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         for layer in self.layers:
@@ -148,29 +147,41 @@ class Sequential:
         history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
 
         for epoch in range(self.epochs):
-            y_pred = self.forward(X)
-            loss   = self.loss_fn.forward(y, y_pred)
-            grad   = self.loss_fn.backwards(y, y_pred)
-            self.backwards(grad)
+            indices = np.random.permutation(len(X))
+            X_shuffled, y_shuffled = X[indices], y[indices]
+ 
+            total_loss = 0.0
+            correct = 0
+ 
+            for start in range(0, len(X), self.batch):
+                Xb = X_shuffled[start:start + self.batch]
+                yb = y_shuffled[start:start + self.batch]
 
-            acc = (np.argmax(y_pred, axis=1) == np.argmax(y, axis=1)).mean()
+                y_pred_b = self.forward(Xb)
+                loss_b = self.loss_fn.forward(yb, y_pred_b)
+                grad_b = self.loss_fn.backwards(yb, y_pred_b)
+                self.backwards(grad_b)
+ 
+                total_loss += loss_b * len(Xb)
+                correct += (np.argmax(y_pred_b, axis=1) == np.argmax(yb, axis=1)).sum()
+ 
+            loss = total_loss / len(X)
+            acc = correct / len(X)
             history["loss"].append(loss)
             history["acc"].append(acc)
 
             if X_valid is not None and y_valid is not None:
                 val_pred = self.forward(X_valid)
                 val_loss = self.loss_fn.forward(y_valid, val_pred)
-                val_acc  = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
+                val_acc = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
             else:
                 val_loss, val_acc = float("nan"), float("nan")
 
             history["val_loss"].append(val_loss)
             history["val_acc"].append(val_acc)
 
-            print(
-                f"Epoch {epoch:>4} | Loss: {loss:.4f} | Acc: {acc:.3f}"
-                + (f" | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.3f}" if X_valid is not None else "")
-            )
+            print(f"epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
+
 
         self.history = history
         return history
