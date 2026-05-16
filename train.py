@@ -2,7 +2,7 @@
 # train.py — config-driven training launcher
 #
 # Usage:
-#     python train.py <config.py> <train.csv> <validation.csv>
+#     python train.py <network.(txt/py)> <train.csv> <validation.csv>
 #
 # The config file is interpreted as plain Python. Everything in mlp.py is
 # pre-imported, plus 'input_shape' and 'output_shape' derived from the data.
@@ -14,6 +14,7 @@ import common as cm
 
 
 def build_namespace(input_shape: int, output_shape: int) -> dict:
+    print(f"Building namespace with input shape: ", input_shape, "output shape:", output_shape)
     return {
         **vars(mlp),
         "input_shape": input_shape,
@@ -50,25 +51,29 @@ def validate(namespace: dict, path: str) -> mlp.Sequential:
 
 def main():
     if len(sys.argv) != 4:
-        sys.exit("Usage: python train.py <config.py> <train.csv> <validation.csv>")
+        sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
 
     config_path, train_path, valid_path = sys.argv[1], sys.argv[2], sys.argv[3]
 
     print("[train] loading data ...")
     X_train, y_train = cm.load_and_prep_data(train_path)
-    X_valid,  y_valid = cm.load_and_prep_data(valid_path)
+    X_valid, y_valid = cm.load_and_prep_data(valid_path)
     print(f"[train] train {X_train.shape}  valid {X_valid.shape}")
 
     namespace = build_namespace(X_train.shape[1], y_train.shape[1])
     namespace = load_config(config_path, namespace)
     model = validate(namespace, config_path)
 
-    print(f"[train] {config_path} - {len(model.layers)}:layers {model.epochs}:epochs {model.batch}:batch_size")
+    print(f"[train] {config_path} - {len(model.layers)} layers  {model.epochs} epochs  {model.batch} batch_size")
     model.fit(X_train, y_train, X_valid, y_valid)
 
     preds = model.predict(X_valid)
     val_acc = (np.argmax(preds, axis=1) == np.argmax(y_valid, axis=1)).mean()
-    print(f"\n[train] validation accuracy: {val_acc:.3%}")
+    bce     = mlp.binary_crossentropy(y_valid, preds)
+
+    print("")
+    print(f"[evaluate] validation accuracy:         {val_acc:.3%}")
+    print(f"[evaluate] binary cross-entropy (eval): {bce:.4f}")
 
 
 if __name__ == "__main__":

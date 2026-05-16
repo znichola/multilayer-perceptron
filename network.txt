@@ -3,6 +3,8 @@
 # all mlp classes (Sequential, Dense, Normalize, Sigmoid, SoftMax, ...)
 # It's easy the write an invalid config, so don't be dumb.
 
+# 
+
 model = Sequential([
     Normalize(),
     Dense(input_shape, 24, activation=Sigmoid),
@@ -11,5 +13,5 @@ model = Sequential([
     Dense(24, output_shape, activation=SoftMax),
 ])
 
-# BinaryCrossentropy
+# CategoricalCrossentropy
 model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=500, batch=0)

@@ -1,9 +1,7 @@
 import numpy as np
 from typing import Protocol, TypeAlias
 
-import common as cm
-
-# Protocols
+eps = 1e-8
 
 class Activation(Protocol):
     @staticmethod
@@ -23,7 +21,6 @@ class LossFunction(Protocol):
 LossType: TypeAlias = type[LossFunction]
 
 
-# TODO : should it also be @staticmethod
 class Layer(Protocol):
     def forward(self, x: np.ndarray) -> np.ndarray: ...
     def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray: ...
@@ -32,8 +29,8 @@ class Layer(Protocol):
 # Layers
 
 class Dense:
-    def __init__(self, in_dem: int, out_dem: int, activation: ActivType | None = None) -> None:
-        self.W = np.random.randn(in_dem, out_dem) * np.sqrt(2 / in_dem)  # He initialization
+    def __init__(self, in_dem: int, out_dem: int, activation: ActivType) -> None:
+        self.W = np.random.randn(in_dem, out_dem) * np.sqrt(2 / in_dem)
         self.b = np.zeros((1, out_dem))
         self.activation = activation
 
@@ -44,8 +41,7 @@ class Dense:
         return self.activation.forward(z) if self.activation else z
 
     def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray:
-        if self.activation:
-            grad = grad * self.activation.backwards(self.z)
+        grad = grad * self.activation.backwards(self.z)
         dW = self.x.T @ grad
         db = grad.sum(axis=0, keepdims=True)
         dx = grad @ self.W.T
@@ -55,9 +51,14 @@ class Dense:
 
 
 class Normalize:
+    def __init__(self) -> None:
+        self.mean: np.ndarray | None = None
+        self.std:  np.ndarray | None = None
+
     def forward(self, x: np.ndarray) -> np.ndarray:
-        self.mean = x.mean(axis=0)
-        self.std  = x.std(axis=0) + 1e-8
+        if self.mean is None:
+            self.mean = x.mean(axis=0)
+            self.std  = x.std(axis=0) + 1e-8
         return (x - self.mean) / self.std
 
     def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray:
@@ -96,40 +97,30 @@ class SoftMax:
 
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray:
-        return np.ones_like(x)
-        s = SoftMax.forward(x)
-        return s * (1 - s)
+        return np.ones_like(x) # a no-op, in this implementaiton it should only be on the last layer pared with CCE
 
-# Loss functions
-# Forward is scalar loss value
-# Backwards is gradient of the loss w.r.t. y_pred
+
+# Loss function
 
 class CategoricalCrossentropy:
     @staticmethod
     def forward(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-        eps = 1e-8
         y_pred = np.clip(y_pred, eps, 1 - eps)
         return -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
 
     @staticmethod
     def backwards(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        eps = 1e-8
         y_pred = np.clip(y_pred, eps, 1 - eps)
         return (y_pred - y_true) / y_true.shape[0]
 
 
-class BinaryCrossentropy:
-    @staticmethod
-    def forward(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-        eps = 1e-8
-        return -(y_true * np.log(y_pred + eps) + (1 - y_true) * np.log(1 - y_pred + eps)
-        ).mean()
+# Evaluation metric
 
-    @staticmethod
-    def backwards(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        eps = 1e-8
-        y_pred = np.clip(y_pred, eps, 1 - eps)
-        return (-(y_true / y_pred) + (1 - y_true) / (1 - y_pred)) / y_true.shape[0]
+def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    p = y_pred[np.arange(len(y_pred)), np.argmax(y_pred, axis=1)]
+    t = y_true[np.arange(len(y_true)), np.argmax(y_true, axis=1)]
+    return -(t * np.log(p)).mean()
 
 # Model
 
@@ -153,8 +144,7 @@ class Sequential:
         for layer in reversed(self.layers):
             grad = layer.backwards(grad, self.lr)
 
-    def fit( self, X: np.ndarray, y: np.ndarray, X_valid: np.ndarray | None = None, y_valid: np.ndarray | None = None,
-    ) -> dict:
+    def fit(self, X: np.ndarray, y: np.ndarray, X_valid: np.ndarray | None = None, y_valid: np.ndarray | None = None) -> dict:
         history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
 
         for epoch in range(self.epochs):
@@ -168,9 +158,9 @@ class Sequential:
             history["acc"].append(acc)
 
             if X_valid is not None and y_valid is not None:
-                val_pred  = self.forward(X_valid)
-                val_loss  = self.loss_fn.forward(y_valid, val_pred)
-                val_acc   = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
+                val_pred = self.forward(X_valid)
+                val_loss = self.loss_fn.forward(y_valid, val_pred)
+                val_acc  = (np.argmax(val_pred, axis=1) == np.argmax(y_valid, axis=1)).mean()
             else:
                 val_loss, val_acc = float("nan"), float("nan")
 
@@ -179,8 +169,7 @@ class Sequential:
 
             print(
                 f"Epoch {epoch:>4} | Loss: {loss:.4f} | Acc: {acc:.3f}"
-                + (f" | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.3f}"
-                if X_valid is not None else "")
+                + (f" | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.3f}" if X_valid is not None else "")
             )
 
         self.history = history
