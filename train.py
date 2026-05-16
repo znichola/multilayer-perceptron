@@ -1,4 +1,3 @@
-
 # train.py — config-driven training launcher
 #
 # Usage:
@@ -10,8 +9,10 @@
 
 import pathlib
 import pickle
+import json
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 import mlp
 import common as cm
 
@@ -53,10 +54,43 @@ def validate(namespace: dict, path: str) -> mlp.Sequential:
 
 
 def save_model(model: mlp.Sequential, config_path: str) -> pathlib.Path:
-    stem = pathlib.Path(config_path).stem
-    out  = pathlib.Path(config_path).with_suffix(".pkl")
+    out = pathlib.Path(config_path).with_suffix(".pkl")
     with open(out, "wb") as f:
         pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return out
+
+
+def save_history(history: dict[str, list], config_path: str) -> pathlib.Path:
+    out = pathlib.Path(config_path).with_suffix(".json")
+    with open(out, "w") as f:
+        json.dump(history, f)
+    return out
+
+
+def plot_history(history: dict[str, list], config_path: str) -> pathlib.Path:
+    has_val = not all(np.isnan(v) for v in history["val_loss"])
+    epochs  = range(1, len(history["loss"]) + 1)
+    out     = pathlib.Path(config_path).with_suffix(".png")
+
+    fig, (ax_loss, ax_acc) = plt.subplots(1, 2, figsize=(12, 4))
+    fig.suptitle(out.stem)
+
+    ax_loss.plot(epochs, history["loss"], label="train")
+    if has_val:
+        ax_loss.plot(epochs, history["val_loss"], label="val")
+    ax_loss.set_title("Loss")
+    ax_loss.set_xlabel("Epoch")
+    ax_loss.legend()
+
+    ax_acc.plot(epochs, history["acc"], label="train")
+    if has_val:
+        ax_acc.plot(epochs, history["val_acc"], label="val")
+    ax_acc.set_title("Accuracy")
+    ax_acc.set_xlabel("Epoch")
+    ax_acc.legend()
+
+    fig.tight_layout()
+    plt.savefig(out)
     return out
 
 
@@ -74,18 +108,20 @@ def main():
     model = validate(namespace, config_path)
 
     print(f"[train] {config_path} - {len(model.layers)} layers  {model.epochs} epochs  {model.batch} batch_size")
-    model.fit(X_train, y_train, X_valid, y_valid)
+    history = model.fit(X_train, y_train, X_valid, y_valid)
 
     preds = model.predict(X_valid)
     val_acc = (np.argmax(preds, axis=1) == np.argmax(y_valid, axis=1)).mean()
     bce     = mlp.binary_crossentropy(y_valid, preds)
 
     print("")
-    print(f"[evaluate] validation accuracy:         {val_acc:.3%}")
-    print(f"[evaluate] binary cross-entropy (eval): {bce:.4f}")
+    print(f"[train] validation accuracy:         {val_acc:.3%}")
+    print(f"[train] binary cross-entropy (eval): {bce:.4f}")
 
     print("")
-    print(f"[train] model saved - {save_model(model, config_path)}")
+    print(f"[train] model saved   - {save_model(model, config_path)}")
+    print(f"[train] history saved - {save_history(history, config_path)}")
+    print(f"[train] plot saved    - {plot_history(history, config_path)}")
 
 
 if __name__ == "__main__":

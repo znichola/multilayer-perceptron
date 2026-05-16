@@ -149,10 +149,10 @@ class Sequential:
         for epoch in range(self.epochs):
             indices = np.random.permutation(len(X))
             X_shuffled, y_shuffled = X[indices], y[indices]
- 
+
             total_loss = 0.0
             correct = 0
- 
+
             for start in range(0, len(X), self.batch):
                 Xb = X_shuffled[start:start + self.batch]
                 yb = y_shuffled[start:start + self.batch]
@@ -161,10 +161,10 @@ class Sequential:
                 loss_b = self.loss_fn.forward(yb, y_pred_b)
                 grad_b = self.loss_fn.backwards(yb, y_pred_b)
                 self.backwards(grad_b)
- 
+
                 total_loss += loss_b * len(Xb)
                 correct += (np.argmax(y_pred_b, axis=1) == np.argmax(yb, axis=1)).sum()
- 
+
             loss = total_loss / len(X)
             acc = correct / len(X)
             history["loss"].append(loss)
@@ -180,8 +180,7 @@ class Sequential:
             history["val_loss"].append(val_loss)
             history["val_acc"].append(val_acc)
 
-            print(f"epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
-
+            print(f"[mlp/sequential/fit] epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
 
         self.history = history
         return history
