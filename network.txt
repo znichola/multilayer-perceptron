@@ -5,11 +5,11 @@
 
 model = Sequential([
     Normalize(),
-    Dense(input_shape, 24, activation=Sigmoid),
-    Dense(24, 24, activation=Sigmoid),
-    Dense(24, 24, activation=Sigmoid),
-    Dense(24, output_shape, activation=SoftMax),
+    Dense(input_shape, 24, activation=Sigmoid, weight_init=HeUniform),
+    Dense(24, 24, activation=Sigmoid, weight_init=HeUniform),
+    Dense(24, 24, activation=Sigmoid, weight_init=HeUniform),
+    Dense(24, output_shape, activation=SoftMax, weight_init=HeUniform),
 ])
 
 # CategoricalCrossentropy
-model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=200, batch=50, patience=10)
+model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=200, batch=50, patience=0)

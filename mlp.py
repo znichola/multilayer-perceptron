@@ -12,6 +12,13 @@ class Activation(Protocol):
 ActivType: TypeAlias = type[Activation]
 
 
+class Initialiser(Protocol):
+    @staticmethod
+    def init(in_dim: int, out_dim: int) -> np.ndarray: ...
+
+InitType: TypeAlias = type[Initialiser]
+
+
 class LossFunction(Protocol):
     @staticmethod
     def forward(y_true: np.ndarray, y_pred: np.ndarray) -> float: ...
@@ -25,12 +32,11 @@ class Layer(Protocol):
     def forward(self, x: np.ndarray) -> np.ndarray: ...
     def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray: ...
 
-
 # Layers
 
 class Dense:
-    def __init__(self, in_dem: int, out_dem: int, activation: ActivType) -> None:
-        self.W = np.random.randn(in_dem, out_dem) * np.sqrt(2 / in_dem)
+    def __init__(self, in_dem: int, out_dem: int, activation: ActivType, weight_init: InitType) -> None:
+        self.W = weight_init.init(in_dem, out_dem)
         self.b = np.zeros((1, out_dem))
         self.activation = activation
 
@@ -98,6 +104,22 @@ class SoftMax:
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray:
         return np.ones_like(x) # a no-op, in this implementaiton it should only be on the last layer pared with CCE
+
+
+# Weight initialiser
+
+class HeUniform:
+    @staticmethod
+    def init(in_dim: int, out_dim: int) -> np.ndarray:
+        limit = np.sqrt(6 / in_dim)
+        return np.random.uniform(-limit, limit, (in_dim, out_dim))
+
+
+class LeCunUniform:
+    @staticmethod
+    def init(in_dim: int, out_dim: int) -> np.ndarray:
+        limit = np.sqrt(3 / in_dim)
+        return np.random.uniform(-limit, limit, (in_dim, out_dim))
 
 
 # Loss function
