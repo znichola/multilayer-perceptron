@@ -127,6 +127,8 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
+    # main()
+    # exit()
     try:
         main()
     except SystemExit:

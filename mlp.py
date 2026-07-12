@@ -32,6 +32,7 @@ class Layer(Protocol):
     def forward(self, x: np.ndarray) -> np.ndarray: ...
     def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray: ...
 
+
 # Layers
 
 class Dense:
@@ -54,21 +55,6 @@ class Dense:
         self.W -= lr * dW
         self.b -= lr * db
         return dx
-
-
-class Normalize:
-    def __init__(self) -> None:
-        self.mean: np.ndarray | None = None
-        self.std:  np.ndarray | None = None
-
-    def forward(self, x: np.ndarray) -> np.ndarray:
-        if self.mean is None:
-            self.mean = x.mean(axis=0)
-            self.std  = x.std(axis=0) + 1e-8
-        return (x - self.mean) / self.std
-
-    def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray:
-        return grad
 
 
 # Activations
@@ -138,11 +124,26 @@ class CategoricalCrossentropy:
 
 # Evaluation metric
 
-def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray):
     y_pred = np.clip(y_pred, eps, 1 - eps)
-    p = y_pred[np.arange(len(y_pred)), np.argmax(y_pred, axis=1)]
-    t = y_true[np.arange(len(y_true)), np.argmax(y_true, axis=1)]
-    return -(t * np.log(p)).mean()
+    # print(y_pred)
+    # print()
+    idx = np.argmax(y_pred, axis=1)
+    p = np.where(idx == 1, y_pred[:, 1], 1 - y_pred[:, 0])
+    y = y_true[:, 1]
+    # print(np.argmax(y_pred, axis=1))
+    # print()
+    # print(p)
+    # print()
+    # print(y)
+
+    print("p diff", y_pred[:,0] - y_pred[:, 1])
+
+    pp = y_pred[:,1]
+    yy = y_true[:,1]
+    print("BCE", -np.mean(yy * np.log(pp) + (1 - yy) * np.log(1 - pp)))
+    return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
+
 
 # Early stopping
 
@@ -170,6 +171,14 @@ class EarlyStopping:
 class Sequential:
     def __init__(self, layers: list[Layer]) -> None:
         self.layers = layers
+        self.mean: None | np.ndarray = None
+        self.std: None | np.ndarray = None
+
+    def normalize(self, X: np.ndarray) -> np.ndarray:
+        if self.mean is None and self.std is None:
+            self.mean = X.mean(axis=0)
+            self.std  = X.std(axis=0) + 1e-8
+        return (X - self.mean) / self.std
 
     def compile(self, loss: LossType, lr: float = 0.01, epochs: int = 100, batch: int = 50, patience: int = 0, min_delta: float = 1e-4) -> None:
         self.loss_fn = loss
@@ -207,6 +216,10 @@ class Sequential:
         history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
         es = EarlyStopping(self.patience, self.min_delta) if self.patience > 0 and X_valid is not None else None
 
+        X = self.normalize(X)
+        if X_valid is not None:
+            X_valid = self.normalize(X_valid)
+
         for epoch in range(self.epochs):
             loss, acc = self.fit_epoch(X, y)
 
@@ -231,4 +244,5 @@ class Sequential:
         return history
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        X = self.normalize(X)
         return self.forward(X)

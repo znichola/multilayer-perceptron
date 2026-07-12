@@ -80,6 +80,6 @@ def load_and_prep_data(path: str) -> tuple[np.ndarray, np.ndarray]:
     df.iloc[:, 1:] = df.iloc[:, 1:].astype(float)
     X = df.drop(columns=["diagnosis"]).to_numpy(dtype=float)
     y = np.zeros((len(df), 2))
-    y[:, 0] = (df["diagnosis"] == "M").astype(float)
-    y[:, 1] = (df["diagnosis"] == "B").astype(float)
+    y[:, 0] = (df["diagnosis"] == "B").astype(float)
+    y[:, 1] = (df["diagnosis"] == "M").astype(float)
     return X, y
