@@ -26,17 +26,19 @@ def main():
     preds = model.predict(X)
 
     predicted_classes = np.argmax(preds, axis=1)
-    true_classes      = np.argmax(y, axis=1)
+    true_classes = np.argmax(y, axis=1)
 
     val_acc = (predicted_classes == true_classes).mean()
-    bce     = mlp.binary_crossentropy(y, preds)
+    bce = mlp.binary_crossentropy(y, preds)
 
-    true_negatives  = ((predicted_classes == 0) & (true_classes == 0)).sum()
-    true_positives  = ((predicted_classes == 1) & (true_classes == 1)).sum()
+    true_negatives = ((predicted_classes == 0) & (true_classes == 0)).sum()
+    true_positives = ((predicted_classes == 1) & (true_classes == 1)).sum()
     false_positives = ((predicted_classes == 1) & (true_classes == 0)).sum()
     false_negatives = ((predicted_classes == 0) & (true_classes == 1)).sum()
 
-    precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0.0
+    predicted_positives = true_positives + false_positives
+    precision = (true_positives / predicted_positives
+                 if predicted_positives > 0 else 0.0)
 
     actual_positives = true_positives + false_negatives
     actual_negatives = true_negatives + false_positives

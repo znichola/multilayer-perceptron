@@ -3,11 +3,13 @@ from typing import Protocol, TypeAlias
 
 eps = 1e-8
 
+
 class Activation(Protocol):
     @staticmethod
     def forward(x: np.ndarray) -> np.ndarray: ...
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray: ...
+
 
 ActivType: TypeAlias = type[Activation]
 
@@ -15,6 +17,7 @@ ActivType: TypeAlias = type[Activation]
 class Initialiser(Protocol):
     @staticmethod
     def init(in_dim: int, out_dim: int) -> np.ndarray: ...
+
 
 InitType: TypeAlias = type[Initialiser]
 
@@ -24,6 +27,7 @@ class LossFunction(Protocol):
     def forward(y_true: np.ndarray, y_pred: np.ndarray) -> float: ...
     @staticmethod
     def backwards(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray: ...
+
 
 LossType: TypeAlias = type[LossFunction]
 
@@ -76,7 +80,7 @@ class Sigmoid:
 
     @staticmethod
     def backwards(x: np.ndarray) -> np.ndarray:
-        s = Sigmoid.forward(x) #TODO store and retrieve
+        s = Sigmoid.forward(x) # TODO store and retrieve
         return s * (1 - s)
 
 
@@ -124,24 +128,10 @@ class CategoricalCrossentropy:
 
 # Evaluation metric
 
-def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray):
-    y_pred = np.clip(y_pred, eps, 1 - eps)
-    # print(y_pred)
-    # print()
-    idx = np.argmax(y_pred, axis=1)
-    p = np.where(idx == 1, y_pred[:, 1], 1 - y_pred[:, 0])
+def binary_crossentropy(y_true: np.ndarray, y_pred: np.ndarray) -> np.floating:
+    # E = -1/N * sum(y*log(p) + (1-y)*log(1-p)) with p = P(malignant)
+    p = np.clip(y_pred[:, 1], eps, 1 - eps)
     y = y_true[:, 1]
-    # print(np.argmax(y_pred, axis=1))
-    # print()
-    # print(p)
-    # print()
-    # print(y)
-
-    print("p diff", y_pred[:,0] - y_pred[:, 1])
-
-    pp = y_pred[:,1]
-    yy = y_true[:,1]
-    print("BCE", -np.mean(yy * np.log(pp) + (1 - yy) * np.log(1 - pp)))
     return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
 
 
@@ -177,7 +167,7 @@ class Sequential:
     def normalize(self, X: np.ndarray) -> np.ndarray:
         if self.mean is None and self.std is None:
             self.mean = X.mean(axis=0)
-            self.std  = X.std(axis=0) + 1e-8
+            self.std = X.std(axis=0) + 1e-8
         return (X - self.mean) / self.std
 
     def compile(self, loss: LossType, lr: float = 0.01, epochs: int = 100, batch: int = 50, patience: int = 0, min_delta: float = 1e-4) -> None:
@@ -204,6 +194,7 @@ class Sequential:
         indices = np.random.permutation(len(X))
         X, y = X[indices], y[indices]
         total_loss, correct = 0.0, 0
+        self.batch = len(X) if self.batch == 0 else self.batch
         for start in range(0, len(X), self.batch):
             Xb, yb = X[start:start + self.batch], y[start:start + self.batch]
             y_pred = self.forward(Xb)
@@ -214,7 +205,9 @@ class Sequential:
 
     def fit(self, X: np.ndarray, y: np.ndarray, X_valid: np.ndarray | None = None, y_valid: np.ndarray | None = None) -> dict:
         history: dict[str, list] = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
-        es = EarlyStopping(self.patience, self.min_delta) if self.patience > 0 and X_valid is not None else None
+        es = None
+        if self.patience > 0 and X_valid is not None:
+            es = EarlyStopping(self.patience, self.min_delta)
 
         X = self.normalize(X)
         if X_valid is not None:

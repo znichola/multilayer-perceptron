@@ -69,8 +69,8 @@ def save_history(history: dict[str, list], config_path: str) -> pathlib.Path:
 
 def plot_history(history: dict[str, list], config_path: str) -> pathlib.Path:
     has_val = not all(np.isnan(v) for v in history["val_loss"])
-    epochs  = range(1, len(history["loss"]) + 1)
-    out     = pathlib.Path(config_path).with_suffix(".png")
+    epochs = range(1, len(history["loss"]) + 1)
+    out = pathlib.Path(config_path).with_suffix(".png")
 
     fig, (ax_loss, ax_acc) = plt.subplots(1, 2, figsize=(12, 4))
     fig.suptitle(out.stem)
@@ -98,6 +98,10 @@ def main():
 
     config_path, train_path, valid_path = sys.argv[1], sys.argv[2], sys.argv[3]
 
+    seed = cm.load_seed()
+    np.random.seed(seed)
+    print(f"[train] seed {seed}")
+
     print("[train] loading data ...")
     X_train, y_train = cm.load_and_prep_data(train_path)
     X_valid, y_valid = cm.load_and_prep_data(valid_path)
@@ -112,7 +116,7 @@ def main():
 
     preds = model.predict(X_valid)
     val_acc = (np.argmax(preds, axis=1) == np.argmax(y_valid, axis=1)).mean()
-    bce     = mlp.binary_crossentropy(y_valid, preds)
+    bce = mlp.binary_crossentropy(y_valid, preds)
 
     print("")
     print(f"[train] validation accuracy:         {val_acc:.3%}")
@@ -127,8 +131,6 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
-    # main()
-    # exit()
     try:
         main()
     except SystemExit:

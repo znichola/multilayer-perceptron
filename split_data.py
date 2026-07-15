@@ -43,7 +43,7 @@ def main():
     df = cm.load_data(args.file_path)
     if df is None:
         return
-    
+
     df = cm.add_headers(cm.strip_ID(df))
 
     train_df, val_df = split_data(df, train_frac=args.train_frac, seed=seed)

@@ -3,19 +3,61 @@
 An introduction to artificial neural networks through the implementation of a
 multilayer perceptron.
 
+## Launching
+
+Launch the training
+```bash
+python train.py network.txt train.csv validation.csv
+```
+
+Example output
+```
+...
+[mlp/fit] epoch 800/800 - accuracy: 0.989 loss: 0.0508 - val_accuracy: 0.974 val_loss: 0.0998
+
+[train] validation accuracy:         97.368%
+[train] binary cross-entropy (eval): 0.0998
+
+[train] model saved   - network.pkl
+[train] history saved - network.json
+[train] plot saved    - network.png
+```
+
+Evaluate the model
+```bash
+python evaluate.py network.pkl validation.csv
+```
+Example output
+```
+[evaluate] .\validation.csv - 114 entries  shape (114, 30)
+[evaluate] .\network.pkl - 4 layers  800 epochs  455 batch_size
+
+[evaluate] accuracy:              97.368%
+[evaluate] precision:             97.826%
+[evaluate] binary cross-entropy:  0.0998
+
+[evaluate] of 47 cancer cases:  45 detected  (95.7%), 2 missed (4.3%)
+[evaluate] of 67 benign cases:  66 detected  (98.5%), 1 false positive (1.5%)
+```
 
 ## Setup
 
 [uv](https://github.com/astral-sh/uv) is used to install and manage python,
 it is simple to install on school computers and creates the venv just fine.
 
-### Launch Jupyter
+```bash
+uv sync # makes the venv and installed packages
+
+# Linux
+source ./venv/bin/active # set the python to current venv
+
+# Windows
+.\.venv\Scripts\activate
+```
 
 [Jupyter notbook](https://jupyter.org/) is a nice mix of docs & code, to launch it:
 
 ```zsh
-uv sync # makes the venv and installed packages
-source ./venv/bin/active
 jupyter notebook
 ```
 
