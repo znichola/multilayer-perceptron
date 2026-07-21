@@ -1,4 +1,4 @@
-# evaluate.py — load a saved model and evaluate it against a dataset
+# evaluate.py - load a saved model and evaluate it against a dataset
 #
 # Usage:
 #     python evaluate.py <model.pkl> <data.csv>

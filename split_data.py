@@ -30,7 +30,7 @@ def setupArgs():
                         )
     parser.add_argument("--seed",
                         type=int,
-                        default=42,
+                        default=None,
                         )
     return parser.parse_args()
 

@@ -143,17 +143,25 @@ class EarlyStopping:
         self.min_delta = min_delta
         self.best_loss = float("inf")
         self.wait = 0
+        self.best_weights: list[tuple[np.ndarray, np.ndarray]] | None = None
 
-    def step(self, val_loss: float, epoch: int) -> bool:
+    def step(self, val_loss: float, epoch: int, layers: list) -> bool:
         if val_loss < self.best_loss - self.min_delta:
             self.best_loss = val_loss
             self.wait = 0
+            self.best_weights = [(l.W.copy(), l.b.copy()) for l in layers]
         else:
             self.wait += 1
             if self.wait >= self.patience:
-                print(f"[mlp/fit] early stopping at epoch {epoch+1}")
+                print(f"[mlp/fit] early stopping at epoch {epoch+1}, restoring weights from best epoch (val_loss={self.best_loss:.4f})")
                 return True
         return False
+
+    def restore(self, layers: list) -> None:
+        if self.best_weights is None:
+            return
+        for l, (W, b) in zip(layers, self.best_weights):
+            l.W, l.b = W, b
 
 
 # Model
@@ -230,8 +238,12 @@ class Sequential:
 
             print(f"[mlp/fit] epoch {epoch+1:02d}/{self.epochs} - accuracy: {acc:.3f} loss: {loss:.4f} - val_accuracy: {val_acc:.3f} val_loss: {val_loss:.4f}")
 
-            if es and es.step(val_loss, epoch):
+            if es and es.step(val_loss, epoch, self.layers):
+                es.restore(self.layers)
                 break
+        else:
+            if es:
+                es.restore(self.layers)
 
         self.history = history
         return history

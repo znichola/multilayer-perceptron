@@ -1,4 +1,4 @@
-# train.py — config-driven training launcher
+# train.py - config-driven training launcher
 #
 # Usage:
 #     python train.py <network.(txt/py)> <train.csv> <validation.csv>
