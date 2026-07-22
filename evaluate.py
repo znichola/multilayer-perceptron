@@ -1,7 +1,7 @@
 # evaluate.py - load a saved model and evaluate it against a dataset
 #
 # Usage:
-#     python evaluate.py <model.pkl> <data.csv>
+#     python evaluate.py <network.pkl> <validation.csv>
 
 import sys
 import pickle
