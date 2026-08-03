@@ -1,17 +1,20 @@
-# train.py - config-driven training launcher
-#
-# Usage:
-#     python train.py <network.(txt/py)> <train.csv> <validation.csv>
-#
-# The config file is interpreted as plain Python. Everything in mlp.py is
-# pre-imported, plus 'input_shape' and 'output_shape' derived from the data.
-# The resulting model is saved and can be loaded to rerun the inferance
+"""train.py - config-driven training launcher
+
+Usage:
+    python train.py <network.(txt/py)> <train.csv> <validation.csv>
+
+The config file is interpreted as plain Python. Everything in mlp.py is
+pre-imported, plus 'input_shape' and 'output_shape' derived from the data.
+The resulting model is saved and can be loaded to rerun the inferance
+"""
 
 import pathlib
 import pickle
 import json
 import sys
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import mlp
 import common as cm
@@ -130,7 +133,7 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        sys.exit("Usage: python train.py <network.(txt/py)> <train.csv> <validation.csv>")
+        sys.exit(__doc__)
     try:
         main()
     except SystemExit:

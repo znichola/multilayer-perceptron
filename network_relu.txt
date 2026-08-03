@@ -1,0 +1,7 @@
+model = Sequential([
+    Dense(input_shape, 16, activation=ReLU, weight_init=HeUniform),
+    Dense(16, 8, activation=ReLU, weight_init=HeUniform),
+    Dense(8, output_shape, activation=SoftMax, weight_init=HeUniform),
+])
+
+model.compile(loss=CategoricalCrossentropy, lr=0.01, epochs=80, batch=32, patience=0)

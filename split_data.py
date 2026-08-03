@@ -1,5 +1,12 @@
+""" split_data.csv - split and prep a dataset for training
+usage: split_data.py [-h] [--train_frac TRAIN_FRAC] [--seed SEED] file_path
+
+The seed is saved to a local `seed` file and is reused for all subsequent steps
+"""
+
 import argparse
 from typing import Tuple
+import sys
 
 import pandas as pd
 from pandas import DataFrame
@@ -70,5 +77,9 @@ def main():
 
 
 if __name__ == "__main__":
-
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as e:
+        sys.exit(f"[evaluate] unexpected error: {type(e).__name__}: {e}")

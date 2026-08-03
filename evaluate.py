@@ -1,7 +1,8 @@
-# evaluate.py - load a saved model and evaluate it against a dataset
-#
-# Usage:
-#     python evaluate.py <model.pkl> <data.csv>
+"""evaluate.py - load a saved model and evaluate it against a dataset
+
+Usage:
+    python evaluate.py <network.pkl> <validation.csv>
+"""
 
 import sys
 import pickle
@@ -54,7 +55,7 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        sys.exit("Usage: python evaluate.py <model.pkl> <data.csv>")
+        sys.exit(__doc__)
 
     try:
         main()

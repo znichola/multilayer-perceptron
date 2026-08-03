@@ -5,6 +5,19 @@ multilayer perceptron.
 
 ## Launching
 
+There is a convineiet command to launch all the steps at once.
+
+```bash
+./make.sh launch data.csv
+```
+
+### Launching individual steps
+
+Split the dataset, this uses a local file `seed` for a repeatable seed value
+```bash
+python split.py data.csv
+```
+
 Launch the training
 ```bash
 python train.py network.txt train.csv validation.csv
@@ -63,8 +76,7 @@ jupyter notebook
 
 ## Notions for the evaluation
 
-Must understand the training phase (learning pase) and the underlying
-algorythms.
+Must understand the training phase (learning pase) and the underlying algorythms.
 
 - feedforward
 - backprogagation
@@ -98,7 +110,7 @@ place to start.
 
 ### PyTorch interface
 
-I will copy the pytorch interface, seems like a reasonable appraoch, and their docs hace nice clickable links in code examples. [build pyTorch model](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html)
+I will copy the pytorch interface, seems like a reasonable approach, and their docs hace nice clickable links in code examples. [build pyTorch model](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html)
 
 The overall layout is something like this:
 

@@ -12,7 +12,7 @@ install() {
     uv sync
 
     echo "To activate the venv run : source .venv/bin/activate"
-    # on windows: .\.venv\Scripts\activate
+    echo "on windows: .\.venv\Scripts\activate"
 }
 
 jupyter() {
@@ -20,9 +20,31 @@ jupyter() {
         && python3 -m jupyter notebook
 }
 
+
+launch() {
+    uv sync
+    echo launching with network: $1
+    echo             on dataset: $2
+
+    python split_data.py $2
+
+    echo ""
+    echo ""
+
+    python train.py $1 train.csv validation.csv
+
+    echo ""
+    echo ""
+
+    MODEL="${1%.txt}.pkl"
+
+    python evaluate.py $MODEL validation.csv
+}
+
 usage() {
     cmds=$(declare -F | awk '{print $3}' | paste -s -d'|' -)
     echo "Usage: ./make.sh [$cmds]"
+    echo "       ./make.sh launch network.txt data.csv"
 }
 
 
@@ -37,7 +59,7 @@ fi
 
 # Check if function exists, then call
 if declare -F "$cmd" > /dev/null; then
-    "$cmd"
+    "$cmd" $2 $3
 else
     echo "Unknown command: $cmd"
     echo
