@@ -11,4 +11,4 @@ model = Sequential([
     Dense(16, output_shape, activation=SoftMax, weight_init=LeCunUniform),
 ])
 
-model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=200, batch=16, patience=0)
+model.compile(loss=CategoricalCrossentropy, lr=0.034, epochs=200, batch=16, patience=0)

@@ -6,4 +6,4 @@ model = Sequential([
     MomentumDense(16, output_shape, activation=SoftMax, weight_init=LeCunUniform, beta=0.9),
 ])
 
-model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=200, batch=16, patience=0)
+model.compile(loss=CategoricalCrossentropy, lr=0.0314, epochs=200, batch=16, patience=0)
