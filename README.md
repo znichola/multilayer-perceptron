@@ -11,12 +11,14 @@ There is a convineiet command to launch all the steps at once.
 ./make.sh launch data.csv
 ```
 
-### Launching individual steps
+### Split data
 
 Split the dataset, this uses a local file `seed` for a repeatable seed value
 ```bash
 python split.py data.csv
 ```
+
+### Training
 
 Launch the training
 ```bash
@@ -36,6 +38,8 @@ Example output
 [train] plot saved    - network.png
 ```
 
+### Evaluation
+
 Evaluate the model
 ```bash
 python evaluate.py network.pkl validation.csv
@@ -51,6 +55,20 @@ Example output
 
 [evaluate] of 47 cancer cases:  45 detected  (95.7%), 2 missed (4.3%)
 [evaluate] of 67 benign cases:  66 detected  (98.5%), 1 false positive (1.5%)
+```
+
+### Comparision
+
+Compare multiple models in one graph
+```bash
+python compare.py --auto # or list the files one by one
+```
+Example output
+```bash
+[compare] loading /home/znichola/Documents/multilayer-perceptron/network_relu.json as 'network_relu'
+[compare] loading /home/znichola/Documents/multilayer-perceptron/network.json as 'network'
+[compare] loading /home/znichola/Documents/multilayer-perceptron/network_patience.json as 'network_patience'
+[compare] comparison plot saved - comparison.png
 ```
 
 ## Setup
@@ -82,7 +100,7 @@ Must understand the training phase (learning pase) and the underlying algorythms
 - backprogagation
 - gradient decent
 
-## Dataset
+### Dataset
 
 It's a csv file with 32 columns extracted from a real dataset of cell
 characteristics based on fine-needle aspiration, more info
@@ -91,7 +109,7 @@ characteristics based on fine-needle aspiration, more info
 The goal is to predic a cancer diagnosis, the M,B colum in the dataset
 (malignant or benign). The data needs proprocessing before being used.
 
-## Implementation
+### Implementation
 
 
 - A split datasets program
@@ -104,7 +122,7 @@ The goal is to predic a cancer diagnosis, the M,B colum in the dataset
 - Use a seed value for training.
 
 
-## Nural network
+### Nural network
 Concept seems simple, but implementation not so much, the google doc is good
 place to start.
 
