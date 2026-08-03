@@ -60,6 +60,25 @@ class Dense:
         self.b -= lr * db
         return dx
 
+class MomentumDense(Dense):
+    def __init__(self, in_dem: int, out_dem: int, activation: ActivType, weight_init: InitType, beta: float) -> None:
+        super().__init__(in_dem, out_dem, activation, weight_init)
+        self.beta = beta
+        self.vW = np.zeros_like(self.W)
+        self.vb = np.zeros_like(self.b)
+
+    def backwards(self, grad: np.ndarray, lr: float) -> np.ndarray:
+        grad = grad * self.activation.backwards(self.z)
+        dW = self.x.T @ grad
+        db = grad.sum(axis=0, keepdims=True)
+        dx = grad @ self.W.T
+
+        self.vW = self.beta * self.vW + dW
+        self.vb = self.beta * self.vb + db
+
+        self.W -= lr * self.vW
+        self.b -= lr * self.vb
+        return dx
 
 # Activations
 
