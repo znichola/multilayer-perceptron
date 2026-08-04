@@ -4,11 +4,11 @@
 # It's easy the write an invalid config, so don't be dumb.
 
 model = Sequential([
-    Dense(input_shape, 16, activation=Sigmoid, weight_init=LeCunUniform),
-    Dense(16, 16, activation=Sigmoid, weight_init=LeCunUniform),
-    Dense(16, 16, activation=Sigmoid, weight_init=LeCunUniform),
-    Dense(16, 16, activation=Sigmoid, weight_init=LeCunUniform),
-    Dense(16, output_shape, activation=SoftMax, weight_init=LeCunUniform),
+    Dense(input_shape, 24, activation=Sigmoid, weight_init=LeCunUniform),
+    Dense(24, 24, activation=Sigmoid, weight_init=LeCunUniform),
+    Dense(24, 24, activation=Sigmoid, weight_init=LeCunUniform),
+    Dense(24, output_shape, activation=SoftMax, weight_init=LeCunUniform),
 ])
 
-model.compile(loss=CategoricalCrossentropy, lr=0.034, epochs=200, batch=16, patience=0)
+model.compile(loss=CategoricalCrossentropy, lr=0.1, epochs=150, batch=32, patience=0)
+
